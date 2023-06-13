@@ -3,7 +3,7 @@ package game;
 import java.util.ArrayList;
 
 import game.enums.PositionStatus;
-import game.enums.Ships;
+import game.enums.Ship;
 
 public class Board {
 	private int[][] board;
@@ -12,11 +12,21 @@ public class Board {
 		board = new int[10][10];
 	}
 	
+	//Construtor para tabuleiro do jogador, sem fog apenas água se true
+	public Board(boolean water) {
+		board = new int [10] [10];
+		if(water) {
+			for(int i = 0; i<10;i++)
+				for(int j = 0; j<10;j++)
+					board[i][j] = PositionStatus.WATER.getStatus();
+		}
+	}
+	
 	/*
-	 * Posiciona navio no tabuleiro
+	 * Posiciona navio no tabuleiro. True se o navio foi colocado.
 	 */
-	public boolean placeShip(Ships ship, Position posi1, Position posi2) {
-		ArrayList<Position> positions = getAvailablePositions(ship.ordinal(), posi1);
+	public boolean placeShip(Ship ship, Position posi1, Position posi2) {
+		ArrayList<Position> positions = getAvailablePositions(ship, posi1);
 		if(positions.contains(posi2)) {
 			int dx = 0, dy = 0; //direção de posicionamento
 			
@@ -24,16 +34,16 @@ public class Board {
 				dx = -1;
 			else if(posi1.getRow()<posi2.getRow())//baixo
 				dx = 1;
-			else if(posi1.getColumn()>posi2.getColumn())//direita
+			else if(posi1.getColumn()<posi2.getColumn())//direita
 				dy = 1;
 			else //esquerda
 				dy = -1;
 				
-			/* Reminder: fazer match do ship com position status
 			for(int i = 0; i<ship.getSize();i++) {
 				board[ posi1.getRow()+(i*dx)][posi1.getColumn()+(i*dy)] = 
-						PositionStatus.
-			}*/
+						PositionStatus.getStatusShipStatus(ship); //fazer match do ship com position status
+			}
+			return true;
 		}
 		return false;
 	}
@@ -42,21 +52,43 @@ public class Board {
 	 * Retorna as posições possíveis de se colocar um navio a partir de uma
 	 * posição inicial
 	 */
-	public ArrayList<Position> getAvailablePositions(int ship, Position posi) {
+	public ArrayList<Position> getAvailablePositions(Ship ship, Position posi) {
 		switch(ship) {
-		//Mudar para o enum
-			case 0: //Carrier
-				return searchNeighborhood(Ships.CARRIER.getSize(),posi);
-			case 1: //BATTLESHIP
-				return searchNeighborhood(Ships.BATTLESHIP.getSize(), posi);
-			case 2: //CRUISER
-				return searchNeighborhood(Ships.CRUISER.getSize(),posi);
-			case 3: //Submarine
-				return searchNeighborhood(Ships.SUBMARINE.getSize(), posi);
-			case 4: //Destroyer
-				return searchNeighborhood(Ships.DESTROYER.getSize(), posi);
+			case CARRIER: //Carrier
+				return searchNeighborhood(Ship.CARRIER.getSize(),posi);
+			case BATTLESHIP: //BATTLESHIP
+				return searchNeighborhood(Ship.BATTLESHIP.getSize(), posi);
+			case CRUISER: //CRUISER
+				return searchNeighborhood(Ship.CRUISER.getSize(),posi);
+			case SUBMARINE: //Submarine
+				return searchNeighborhood(Ship.SUBMARINE.getSize(), posi);
+			case DESTROYER: //Destroyer
+				return searchNeighborhood(Ship.DESTROYER.getSize(), posi);
 		}
 		return null;
+	}
+	
+	/*
+	 * Retorna posição do tabuleiro
+	 */
+	public int getPosition(Position posi) {
+		return board[posi.getRow()][posi.getColumn()];
+	}
+	
+	/*
+	 * Define status de uma posição
+	 */
+	public void setPosition(Position posi, PositionStatus status) {
+		board[posi.getRow()][posi.getColumn()] = status.getStatus();
+	}
+	
+	/*
+	 * Coloca todas posições do tabuleiro como água
+	 */
+	public void clear() {
+		for(int i = 0; i<10;i++)
+			for(int j = 0; j<10;j++)
+				board[i][j] = PositionStatus.WATER.getStatus();
 	}
 	
 	/*
@@ -100,8 +132,9 @@ public class Board {
 	public boolean isAvailableCoordinate(int row, int column) {
 		if(row<0 || row>9 || column<0 || column>9)
 			return false;
-		if(board[row][column] != 0)
-			return false;
+		if(board[row][column] != PositionStatus.WATER.getStatus())
+			if(board[row][column] != PositionStatus.FOG.getStatus())
+				return false;
 		return true;
 	}
 	

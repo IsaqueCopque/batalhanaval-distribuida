@@ -39,6 +39,10 @@ public class Position {
 		return status;
 	}
 	
+	public boolean isValid() {
+		return row < 10 && row > -1 && column < 10 & column > -1;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		Position posi = (Position) obj;

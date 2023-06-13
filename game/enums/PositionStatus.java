@@ -8,7 +8,9 @@ public enum PositionStatus {
 	CRUISER(4), //Crusador 
 	SUBMARINE(5),//Submarino
 	DESTROYER(6), //Destroyer
-	HIT(7);
+	HIT(7),		//Atirou
+	HITWATER(8); //Atirou na água (para o tabuleiro do jogador)
+	
 	
 	private int status;
 	
@@ -18,6 +20,15 @@ public enum PositionStatus {
 	
 	public int getStatus() {
 		return status;
+	}
+	
+	//Retorna o status da posição dado um navio
+	public static int getStatusShipStatus(Ship ship) {
+		for(PositionStatus p : PositionStatus.values()) {
+			if(ship.name() == p.name())
+				return p.status;
+		}
+		return -1;
 	}
 }
 

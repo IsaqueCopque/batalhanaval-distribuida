@@ -1,6 +1,6 @@
 package game.enums;
 
-public enum Ships {
+public enum Ship {
 	CARRIER(5),//Porta-avião 5
 	BATTLESHIP(4), //Navio-tanque 4
 	CRUISER(3), //Crusador 3
@@ -9,7 +9,7 @@ public enum Ships {
 	
 	private int size;
 	
-	Ships(int size) {
+	Ship(int size) {
 		this.size = size;
 	}
 
