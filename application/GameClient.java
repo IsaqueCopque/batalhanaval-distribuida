@@ -6,7 +6,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 import game.Board;
@@ -33,88 +32,128 @@ class GameClient {
 	}
 	
 	/*
-	 * Obtem do jogador as posições dos navios para enviar para o servidor
+	 * Envia para o servidor as posições dos navios
 	 */
 	public void initialize() throws IOException {
 		ArrayList<Ship> ships = new ArrayList<Ship>();
+		ArrayList<Position> initialPositions = new ArrayList<Position>();
+		ArrayList<Position> finalPositions =  new ArrayList<Position>();
+		Position initialP = null, finalP = null;
 		int done = 0;
 		
-		while(done <5) {
+		while(done <5) { //Coleta os 5 navios e suas posições
 			board.printBoard();
-			Ship ship = getShip();
-			Position initialP, finalP;
-			getPositions(ship, initialP,finalP);
+		
+			Ship ship = getShip(ships);
+			Position[] positions = getPositions(ship);
+			initialP = positions[0];
+			finalP = positions[1];
+			
 			boolean placed = board.placeShip(ship, initialP, finalP);
-			if(placed) done ++;
+			if(placed) {
+				ships.add(ship);
+				initialPositions.add(initialP);
+				finalPositions.add(finalP);
+				done ++;
+			}
 		}
+				
+		boolean placedInServer = false; //resposta do servidor se foi possível posicionar
 		
-//		ArrayList<Ship> ships = new ArrayList<Ship>(
-//				Arrays.asList(Ship.BATTLESHIP,Ship.CARRIER, Ship.CRUISER, Ship.DESTROYER, Ship.SUBMARINE));
-//		ArrayList<Position> initials = new ArrayList<Position>(
-//				Arrays.asList(new Position(0,0),new Position(1,1),new Position(8,9),new Position(9,0),new Position(4,7)));
-//		ArrayList<Position> finals = new ArrayList<Position>(
-//				Arrays.asList(new Position(0,3),new Position(5,1),new Position(8,7),new Position(9,1),new Position(4,9)));
-		
-		boolean placed = false;
-		while(!placed) {
+		while(!placedInServer) { //Envia os dados para o servidor
 			out.writeObject(ships);
 			out.flush();
-			out.writeObject(initials);
+			out.writeObject(initialPositions);
 			out.flush();
-			out.writeObject(finals);
+			out.writeObject(finalPositions);
 			out.flush();
-			placed = in.readBoolean();
+			placedInServer = in.readBoolean(); 
 		}
 		
-		System.out.println("Cliente --> Enviado para servidor");
+		System.out.println("Cliente --> Enviado dados. Servidor Posicionou navios.");
 	}
 	
 	/*
 	 * Obtém do jogador o navio a ser colocado
+	 * alreadyPlaced: navios já posicionados
 	 */
-	private Ship getShip() {
-		int s =-1;
-		System.out.println("(1)Porta-avião | (2)Navio-tanque | (3)Crusador | (4)Submarino | (5)Destroyer");
+	private Ship getShip(ArrayList<Ship> alreadyPlaced) {
+		int s =-1, selected = -1;
 		System.out.println("Qual navio deseja posicionar?");
-		while(s<1 || s>5) 
+		for(Ship ship : Ship.values()) {
+			if(!alreadyPlaced.contains(ship)) { //Mostrar apenas ainda não colocado
+				if(ship == Ship.CARRIER)
+					System.out.print("(1)Porta-avião | ");
+				else if(ship == Ship.BATTLESHIP)
+					System.out.print("(2)Navio-tanque | ");
+				else if(ship == Ship.CRUISER)
+					System.out.print("(3)Crusador | ");
+				else if(ship == Ship.SUBMARINE)
+					System.out.print("(4)Submarino | ");
+				else if(ship == Ship.DESTROYER)
+					System.out.print("(5)Destroyer | ");
+			}
+		}
+		while(s<1 || s>5) {
 			s = scan.nextInt();
-		s--;
-		return Ship.values()[s];
+			selected = s-1;
+			if(alreadyPlaced.contains(Ship.values()[selected]))//se passou valor do que já foi colocado
+				s = -1;
+		}
+		return Ship.values()[selected];
 	}
 	
 	/*
 	 * Obtém do jogador a posição do navio a ser colocado
 	 */
-	private void getPositions(Ship ship, Position initialP, Position finalP) {
+	private Position[] getPositions(Ship ship) {
 		int x = -1;
 		char y = 'Z';
-		int yCode = (int) y;
-		System.out.print("Qual a linha da posição inicial? ");
-		while(x<0 || x>9)
-			x = scan.nextInt() -1;
-		System.out.print("Qual a coluna da posição inicial? ");
-		while(((int) y)< 65 || ((int) y)>74) 
-			y =  (scan.next().toUpperCase().charAt(0));
-		initialP = new Position(x,y);
+		boolean validPosition1 = false, validPosition2;
+		Position initialP = null, finalP = null;
+		ArrayList<Position> posibles;
 		
-		ArrayList<Position> posibles = board.getAvailablePositions(ship,initialP);
-		
-		x = -1; y = 'Z';
-		System.out.println("Qual a linha da posição final? ");
-		for(Position posi : posibles)System.out.print(posi.getRow()+" ");
-		System.out.println();
-		while(x<0 || x>9) {
-			x = scan.nextInt() -1;
-			//To-do: Terminar aqui de validar se a posição final consta no array de disponiveis
+		while(!validPosition1) {
+			validPosition2 = false;
+			System.out.print("Qual a linha da posição inicial? ");
+			while(x<0 || x>9)
+				x = scan.nextInt() -1;
+			System.out.print("Qual a coluna da posição inicial? ");
+			while(((int) y)< 65 || ((int) y)>74) 
+				y =  (scan.next().toUpperCase().charAt(0));
+			
+			initialP = new Position(x,y);
+			posibles = board.getAvailablePositions(ship,initialP);
+			
+			if(posibles.size() > 0) { //Posição inicial válida
+				int i;
+				while(!validPosition2) {
+					x = -1;
+					System.out.println("Qual a posição final? ");
+
+					for(i = 0; i< posibles.size(); i++) 
+						System.out.print("("+(i+1)+"): "+posibles.get(i)+" |");						
+					System.out.println("("+(i+1)+"): Mudar posição inicial");
+
+					while(x<0 || x>posibles.size()+1)
+						x = scan.nextInt() -1;
+					
+					if(x == posibles.size()) {//Volta para mudar posição incial
+						x = -1; y = 'Z';
+						validPosition2 = true;
+					}else {
+						Position choosed = posibles.get(x);
+						finalP = new Position(choosed.getRow(),choosed.getColumn());
+						validPosition2 = true;
+						validPosition1 = true;
+					}
+				}
+			} else{
+				System.out.println("Posição inválida");
+				x = -1; y = 'Z';
+			}
 		}
-		System.out.print("Qual a coluna da posição final? ");
-		while(((int) y)< 65 || ((int) y)>74) 
-			y =  (scan.next().toUpperCase().charAt(0));
-		
-		finalP = new Position(x,y);
-		
-		
-		
+		return new Position[]{initialP, finalP};
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, UnknownHostException, IOException {

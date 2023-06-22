@@ -9,11 +9,32 @@ import game.enums.Ship;
 public class Main {
 
 	public static void main(String[] args) {
-		Board board = new Board();
-		board.printBoard();
-		Scanner scan = new Scanner(System.in);
-		char c = (scan.next().toUpperCase().charAt(0));
-		System.out.println(c);
+//		Board board = new Board();
+//		board.printBoard();
+//		Scanner scan = new Scanner(System.in);
+//		char c = (scan.next().toUpperCase().charAt(0));
+//		System.out.println(c);
+		
+		ArrayList<Ship> colocados = new ArrayList<Ship>(
+				Arrays.asList(Ship.BATTLESHIP,Ship.DESTROYER));
+		
+		System.out.println("Qual navio deseja posicionar?");
+		for(Ship ship : Ship.values()) {
+			if(!colocados.contains(ship)) {
+				if(ship == Ship.CARRIER)
+					System.out.print("(1)Porta-avião | ");
+				else if(ship == Ship.BATTLESHIP)
+					System.out.print("(2)Navio-tanque | ");
+				else if(ship == Ship.CRUISER)
+					System.out.print("(3)Crusador | ");
+				else if(ship == Ship.SUBMARINE)
+					System.out.print("(4)Submarino | ");
+				else if(ship == Ship.DESTROYER)
+					System.out.print("(5)Destroyer | ");
+			}
+		}
+		
+		
 //		int s =-1;
 //		System.out.println("(1)Porta-avião | (2)Navio-tanque | (3)Crusador | (4)Submarino | (5)Destroyer");
 //		System.out.println("Qual navio deseja posicionar?");
