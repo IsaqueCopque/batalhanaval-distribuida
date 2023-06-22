@@ -1,8 +1,11 @@
 package game;
 
+import java.io.Serializable;
+
 import game.enums.PositionStatus;
 
-public class Position {
+public class Position implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private int row; //0-9
 	private int column; //0-9
 	private int status;
