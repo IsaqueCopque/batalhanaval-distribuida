@@ -109,6 +109,13 @@ public class Match {
 	}
 	
 	/*
+	 * Retorna se o turno é do jogador 1
+	 */
+	public boolean isPlayer1Turn() {
+		return player1Move;
+	}
+	
+	/*
 	 * Printa tabuleiros para debug
 	 */
 	public void printBoards() {
@@ -121,5 +128,23 @@ public class Match {
 		System.out.println("Attack Board Player 2");
 		attackBoard2.printBoard();
 	}
-	
+
+	public Board getBoard1() {
+		return board1;
+	}
+	public Board getAttackBoard1() {
+		return attackBoard1;
+	}
+	public Board getBoard2() {
+		return board2;
+	}
+	public Board getAttackBoard2() {
+		return attackBoard2;
+	}
+	public int getPlayer1Points() {
+		return player1Points;
+	}
+	public int getPlayer2Points() {
+		return player2Points;
+	}
 }
