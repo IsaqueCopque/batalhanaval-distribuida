@@ -140,6 +140,28 @@ public class Board implements Serializable{
 		return true;
 	}
 	
+	/*
+	 * Imprime uma linha do tabuleiro
+	 */
+	public String getStringBoardLine(int i) {
+		if(i<-1 || i > 9) 
+			return null;
+		if(i == -1) 
+			return "   |A|B|C|D|E|F|G|H|I|J|";
+		String line = "";
+		int j;
+		line = line.concat((i+1)+"");
+		if(i != 9) line = line.concat("  |");
+		else line = line.concat(" |");
+		for(j = 0; j<10; j++) {
+			line = line.concat(board[i][j] + "|");
+		}
+		return line;
+	}
+	
+	/*
+	 * Imprime todo tabuleiro
+	 */
 	public void printBoard() {
 		System.out.println("\n------------------------"); 
 		System.out.println("   |A|B|C|D|E|F|G|H|I|J|");

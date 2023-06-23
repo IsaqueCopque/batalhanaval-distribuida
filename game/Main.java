@@ -7,32 +7,46 @@ import java.util.Scanner;
 import game.enums.Ship;
 
 public class Main {
+	
+	public static void main(String[] args) {//24 por tab
+		Board board = new Board();
 
-	public static void main(String[] args) {
-//		Board board = new Board();
-//		board.printBoard();
+		for(int i = -1;i<10;i++) {
+			if(i == -1) {
+				System.out.println("========================    ||    ========================");
+				System.out.println("_______Meus navios______    ||    ______Campo inimigo_____");
+				System.out.println("========================    ||    ========================");
+			}
+			String line = board.getStringBoardLine(i);
+			System.out.print(line);
+			System.out.print("    ||    ");
+			System.out.println(line);
+		}
+		
+		
+		//		board.printBoard();
 //		Scanner scan = new Scanner(System.in);
 //		char c = (scan.next().toUpperCase().charAt(0));
 //		System.out.println(c);
 		
-		ArrayList<Ship> colocados = new ArrayList<Ship>(
-				Arrays.asList(Ship.BATTLESHIP,Ship.DESTROYER));
-		
-		System.out.println("Qual navio deseja posicionar?");
-		for(Ship ship : Ship.values()) {
-			if(!colocados.contains(ship)) {
-				if(ship == Ship.CARRIER)
-					System.out.print("(1)Porta-avião | ");
-				else if(ship == Ship.BATTLESHIP)
-					System.out.print("(2)Navio-tanque | ");
-				else if(ship == Ship.CRUISER)
-					System.out.print("(3)Crusador | ");
-				else if(ship == Ship.SUBMARINE)
-					System.out.print("(4)Submarino | ");
-				else if(ship == Ship.DESTROYER)
-					System.out.print("(5)Destroyer | ");
-			}
-		}
+//		ArrayList<Ship> colocados = new ArrayList<Ship>(
+//				Arrays.asList(Ship.BATTLESHIP,Ship.DESTROYER));
+//		
+//		System.out.println("Qual navio deseja posicionar?");
+//		for(Ship ship : Ship.values()) {
+//			if(!colocados.contains(ship)) {
+//				if(ship == Ship.CARRIER)
+//					System.out.print("(1)Porta-avião | ");
+//				else if(ship == Ship.BATTLESHIP)
+//					System.out.print("(2)Navio-tanque | ");
+//				else if(ship == Ship.CRUISER)
+//					System.out.print("(3)Crusador | ");
+//				else if(ship == Ship.SUBMARINE)
+//					System.out.print("(4)Submarino | ");
+//				else if(ship == Ship.DESTROYER)
+//					System.out.print("(5)Destroyer | ");
+//			}
+//		}
 		
 		
 //		int s =-1;

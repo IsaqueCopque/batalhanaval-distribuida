@@ -1,6 +1,5 @@
 package application;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -57,7 +56,6 @@ class GameServer {
 		ArrayList<Position> initialPositions;
 		ArrayList<Position> finalPositions;
 		ArrayList<Ship> ships;
-
 		
 		System.out.println("Recebendo navios do player 1 ...");
 		
@@ -105,10 +103,6 @@ class GameServer {
 	
 	/*
 	 * Começa e executa partida até o final 
-	 * Retorna para o cliente:
-	 * Primeiro a jogar (boolean), Partida chegou ao fim (boolean),
-	 * Ataque realizado (boolean), Tabuleiro(Board), TabuleiroAtaque(Board)
-	 * Motivo(String) se ataque não realizado
 	 */
 	private void startMatch() throws ClassNotFoundException, IOException {
 		boolean matchEnded = false;
@@ -119,35 +113,36 @@ class GameServer {
 		writeObject(Boolean.FALSE,false);
 		
 		while(! matchEnded) {
-			if(match.isPlayer1Turn())
-				attackPosition = (Position) in1.readObject(); //Recebe posição de ataque
-			else
-				attackPosition = (Position) in2.readObject(); //Recebe posição de ataque
-			try {
-				matchEnded = match.shoot(attackPosition); //Realiza tiro
-				//Se tiro não falhou
-				//Informa se partida chegou ao fim
-				writeObject(Boolean.valueOf(matchEnded),true);
-				writeObject(Boolean.valueOf(matchEnded),false);
-				//Informa que o ataque foi realizado para o jogador do turno
-				if(match.isPlayer1Turn()) writeObject(Boolean.TRUE,true);
-				else writeObject(Boolean.TRUE,false);
-				//Devolve tabuleiro
-				writeObject(match.getBoard1(),true);
-				writeObject(match.getBoard2(),false);
-				//Devolve tabuleiro de ataque
-				writeObject(match.getAttackBoard1(),true);
-				writeObject(match.getAttackBoard2(),false);
-			}catch(GameException e) {// Se atirou em posição inválida
-				matchEnded = false;
-				if(match.isPlayer1Turn()) {
+			if(match.isPlayer1Turn()) { //Turno player1
+				try {
+					attackPosition = (Position) in1.readObject(); //Recebe posição de ataque
+					matchEnded = match.shoot(attackPosition); //Realiza tiro
+					writeObject(Boolean.valueOf(matchEnded),true); //Informa se partida chegou ao fim
+					writeObject(Boolean.TRUE,true); //informa que o ataque foi realizado com sucesso
+					writeObject(match.getAttackBoard1(),true); //retorna tabuleiro de ataque com resultado
+					//Retorna para player2
+					writeObject(Boolean.valueOf(matchEnded),false);
+					writeObject(match.getBoard2(),false);
+				}catch(GameException e) {// Se atirou em posição inválida
 					writeObject(Boolean.FALSE,true); //Informa que partida não chegou ao fim
 					writeObject(Boolean.FALSE,true); //Informa que o ataque não foi realizado
 					writeObject(e.getMessage(),true);//Devolve o motivo do ataque não ter sido realizado
-				}else {
-					writeObject(Boolean.FALSE,false);
-					writeObject(Boolean.FALSE,false);
-					writeObject(e.getMessage(),false);
+				}
+			}
+			else{//Turno player2
+				try {
+					attackPosition = (Position) in2.readObject(); //Recebe posição de ataque
+					matchEnded = match.shoot(attackPosition); //Realiza tiro
+					writeObject(Boolean.valueOf(matchEnded),false); //Informa se partida chegou ao fim
+					writeObject(Boolean.TRUE,false);//Informa que o ataque foi realizado com sucesso
+					writeObject(match.getAttackBoard2(),false); //retorna tabuleiro de ataque com resultado
+					//Retorna para player1
+					writeObject(Boolean.valueOf(matchEnded),true);
+					writeObject(match.getBoard1(),true);
+				}catch(GameException e) {// Se atirou em posição inválida
+					writeObject(Boolean.FALSE,false); //Informa que partida não chegou ao fim
+					writeObject(Boolean.FALSE,false); //Informa que o ataque não foi realizado
+					writeObject(e.getMessage(),false);//Devolve o motivo do ataque não ter sido realizado
 				}
 			}
 		}
