@@ -1,11 +1,13 @@
 package game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import game.enums.PositionStatus;
 import game.enums.Ship;
 
-public class Board {
+public class Board implements Serializable{
+	private static final long serialVersionUID = 1L;
 	private int[][] board;
 	
 	public Board() {

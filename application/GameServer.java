@@ -19,13 +19,33 @@ class GameServer {
 	private Socket player1;
 	private Socket player2;
 	private Match match;
-	private ObjectInputStream in;
+	private ObjectInputStream in1;
+	private ObjectInputStream in2;
+	private ObjectOutputStream out1;
+	private ObjectOutputStream out2;
 	
 	public GameServer(int port) throws IOException {
 		server = new ServerSocket(port);
 		player1 = null;
 		player2 = null;
-		in = null;
+		in1 = null;
+		in2 = null;
+		out1 = null;
+		out2 = null;
+	}
+	
+	
+	/*
+	 * Escreve objeto no socket do jogador indicado.
+	 */
+	public void writeObject(Object obj,boolean player1) throws IOException {
+		if(player1) {
+			out1.writeObject(obj);
+			out1.flush();
+		}else {
+			out2.writeObject(obj);
+			out2.flush();
+		}
 	}
 	
 	/*
@@ -37,64 +57,51 @@ class GameServer {
 		ArrayList<Position> initialPositions;
 		ArrayList<Position> finalPositions;
 		ArrayList<Ship> ships;
-		DataOutputStream outPlayer1 = new DataOutputStream(player1.getOutputStream());
-		DataOutputStream outPlayer2 = new DataOutputStream(player2.getOutputStream());
+
 		
 		System.out.println("Recebendo navios do player 1 ...");
 		
-		in = new ObjectInputStream(player1.getInputStream());
+		while(player1.getInputStream().available() < 1) {}//espera receber dados
+		in1 = new ObjectInputStream(player1.getInputStream());
+		
 		while(true) {
-			ships = (ArrayList<Ship>) in.readObject(); //Recebe navios
-			initialPositions = (ArrayList<Position>) in.readObject(); //Recebe Posições iniciais
-			finalPositions = (ArrayList<Position>) in.readObject(); //Recebe Posições finais
+			ships = (ArrayList<Ship>) in1.readObject(); //Recebe navios
+			initialPositions = (ArrayList<Position>) in1.readObject(); //Recebe Posições iniciais
+			finalPositions = (ArrayList<Position>) in1.readObject(); //Recebe Posições finais
 			
 			boolean placed = match.placeShips(true, ships, initialPositions, finalPositions);
-			outPlayer1.writeBoolean(placed);
-			outPlayer1.flush();
+			writeObject(Boolean.valueOf(placed), true);
 			
 			if(placed) {
 				System.out.println("Recebido navios do player 1.");
 				break;
-			}else {//Se não foi possível posicionar os navios, recebe novamente
+			}else //Se não foi possível posicionar os navios, recebe novamente
 				System.out.println("Problema ao receber navios do player 1 .");
-				initialPositions.clear();
-				finalPositions.clear();
-			}
 		}
 		
 		System.out.println("Recebendo navios do player 2 ...");
 		
-		initialPositions.clear();
-		finalPositions.clear();
-		in.close();
-		in = new ObjectInputStream(player2.getInputStream());
+		while(player2.getInputStream().available() < 1){}
+		in2 = new ObjectInputStream(player2.getInputStream());//espera receber dados
+		
 		while(true) {
-			ships = (ArrayList<Ship>) in.readObject();//Recebe navios
-			initialPositions = (ArrayList<Position>) in.readObject(); //Recebe Posições iniciais
-			finalPositions = (ArrayList<Position>) in.readObject(); //Recebe Posições finais
+			ships = (ArrayList<Ship>) in2.readObject();//Recebe navios
+			initialPositions = (ArrayList<Position>) in2.readObject(); //Recebe Posições iniciais
+			finalPositions = (ArrayList<Position>) in2.readObject(); //Recebe Posições finais
 			
 			boolean placed = match.placeShips(false, ships, initialPositions, finalPositions);
-			outPlayer2.writeBoolean(placed);
-			outPlayer2.flush();
+			writeObject(Boolean.valueOf(placed), false);
 			
 			if(placed) {
 				System.out.println("Recebido navios do player 2.");
 				break;
-			}else {//Se não foi possível posicionar os navios, recebe novamente
+			}else //Se não foi possível posicionar os navios, recebe novamente
 				System.out.println("Problema ao receber navios do player 2 .");
-				initialPositions.clear();
-				finalPositions.clear();
-			}
 		}
 		
-		System.out.println("Recebido de ambos");
+		System.out.println("Recebido navios de ambos jogadores");
 		match.printBoards();
-		
-		outPlayer1.close();
-		outPlayer2.close();
-		in.close();
 	}
-	
 	
 	/*
 	 * Começa e executa partida até o final 
@@ -106,59 +113,41 @@ class GameServer {
 	private void startMatch() throws ClassNotFoundException, IOException {
 		boolean matchEnded = false;
 		Position attackPosition;
-		ObjectOutputStream outPlayer1 = new ObjectOutputStream(player1.getOutputStream());
-		ObjectOutputStream outPlayer2 = new ObjectOutputStream(player2.getOutputStream());
 		
 		//Informa para o player 1 que ele é o primeiro a jogar e para o 2 aguardar
-		outPlayer1.writeObject(Boolean.TRUE);
-		outPlayer2.writeObject(Boolean.FALSE);
-		outPlayer1.flush();
-		outPlayer2.flush();
+		writeObject(Boolean.TRUE,true);
+		writeObject(Boolean.FALSE,false);
 		
 		while(! matchEnded) {
-			attackPosition = (Position) in.readObject(); //Recebe posição de ataque
+			if(match.isPlayer1Turn())
+				attackPosition = (Position) in1.readObject(); //Recebe posição de ataque
+			else
+				attackPosition = (Position) in2.readObject(); //Recebe posição de ataque
 			try {
 				matchEnded = match.shoot(attackPosition); //Realiza tiro
 				//Se tiro não falhou
 				//Informa se partida chegou ao fim
-				outPlayer1.writeObject(Boolean.valueOf(matchEnded));
-				outPlayer2.writeObject(Boolean.valueOf(matchEnded));
-				outPlayer1.flush();
-				outPlayer2.flush();
+				writeObject(Boolean.valueOf(matchEnded),true);
+				writeObject(Boolean.valueOf(matchEnded),false);
 				//Informa que o ataque foi realizado para o jogador do turno
-				if(match.isPlayer1Turn()) {
-					outPlayer1.writeObject(Boolean.TRUE);
-					outPlayer1.flush();
-				}else {
-					outPlayer2.writeObject(Boolean.TRUE);
-					outPlayer2.flush();
-				}
+				if(match.isPlayer1Turn()) writeObject(Boolean.TRUE,true);
+				else writeObject(Boolean.TRUE,false);
 				//Devolve tabuleiro
-				outPlayer1.writeObject(match.getBoard1());
-				outPlayer2.writeObject(match.getBoard2());
-				outPlayer1.flush();
-				outPlayer2.flush();
+				writeObject(match.getBoard1(),true);
+				writeObject(match.getBoard2(),false);
 				//Devolve tabuleiro de ataque
-				outPlayer1.writeObject(match.getAttackBoard1());
-				outPlayer2.writeObject(match.getAttackBoard2());
-				outPlayer1.flush();
-				outPlayer2.flush();
+				writeObject(match.getAttackBoard1(),true);
+				writeObject(match.getAttackBoard2(),false);
 			}catch(GameException e) {// Se atirou em posição inválida
 				matchEnded = false;
 				if(match.isPlayer1Turn()) {
-					outPlayer1.writeObject(Boolean.FALSE); //Informa que partida não chegou ao fim
-					outPlayer1.flush();
-					outPlayer1.writeObject(Boolean.FALSE); //Informa que o ataque não foi realizado
-					outPlayer1.flush();
-					outPlayer1.writeObject(e.getMessage());//Devolve o motivo do ataque não ter sido realizado
-					outPlayer1.flush();
+					writeObject(Boolean.FALSE,true); //Informa que partida não chegou ao fim
+					writeObject(Boolean.FALSE,true); //Informa que o ataque não foi realizado
+					writeObject(e.getMessage(),true);//Devolve o motivo do ataque não ter sido realizado
 				}else {
-					outPlayer2.writeObject(Boolean.FALSE);
-					outPlayer2.flush();
-					outPlayer2.writeObject(Boolean.FALSE);
-					outPlayer2.flush();
-					outPlayer2.writeObject(e.getMessage());
-					outPlayer2.flush();
+					writeObject(Boolean.FALSE,false);
+					writeObject(Boolean.FALSE,false);
+					writeObject(e.getMessage(),false);
 				}
 			}
 		}
@@ -166,18 +155,13 @@ class GameServer {
 		String winnerMsg = "Fim da partida. Você destruiu os navios inimigos!";
 		String looserMsg = "Fim da partida. Seus navios foram destruídos!";
 		if(match.getPlayer1Points() == 0) {
-			outPlayer1.writeObject(looserMsg);
-			outPlayer1.flush();
-			outPlayer2.writeObject(winnerMsg);
-			outPlayer2.flush();
+			writeObject(looserMsg,true);
+			writeObject(winnerMsg,false);
 		}else {
-			outPlayer1.writeObject(winnerMsg);
-			outPlayer1.flush();
-			outPlayer2.writeObject(looserMsg);
-			outPlayer2.flush();
+			writeObject(winnerMsg,true);
+			writeObject(looserMsg,false);
 		}
 	}
-	
 	
 	/*
 	 * Recebe conexões com os clientes e começa a partida
@@ -188,6 +172,9 @@ class GameServer {
 		System.out.println("Player 1 conectado: "+player1.getInetAddress().getHostAddress());
 		player2 = server.accept();
 		System.out.println("Player 2 conectado: "+player2.getInetAddress().getHostAddress());
+		
+		out1 = new ObjectOutputStream(player1.getOutputStream());
+		out2 = new ObjectOutputStream(player2.getOutputStream());
 		
 		match = new Match();
 		receiveShips();

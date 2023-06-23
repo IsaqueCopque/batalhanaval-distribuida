@@ -1,5 +1,6 @@
 package application;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -25,7 +26,7 @@ class GameClient {
 	
 	public GameClient(String ip, int port) throws UnknownHostException, IOException {
 		clientSocket = new Socket(ip, port);
-		in = new ObjectInputStream(clientSocket.getInputStream());
+		in = null;
 		out = new ObjectOutputStream(clientSocket.getOutputStream());
 		scan = new Scanner(System.in);
 		board = new Board();
@@ -37,14 +38,16 @@ class GameClient {
 	 */
 	public void startMatch() throws IOException, ClassNotFoundException {
 		System.out.println("Cliente --> Iniciando partida.");
-		boolean myTurn = in.readBoolean(); //recebe se é o primeiro a jogar
+		
+		while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
+		boolean myTurn = (Boolean) in.readObject(); //recebe se é o primeiro a jogar
 		boolean matchEnded = false, attackRealized;
 		Position attackPosition = null;
 		
 		while(!matchEnded) {
 			if(!myTurn) { // aguarda jogada do adversário
 				System.out.println("Aguardando jogada do adversário ...");
-				matchEnded = in.readBoolean();
+				matchEnded = (Boolean) in.readObject();
 				board = (Board) in.readObject();
 				attackBoard = (Board) in.readObject();
 				myTurn = true;
@@ -55,10 +58,9 @@ class GameClient {
 			}else { //realiza ataque
 				System.out.println("Seu turno. Escolha uma posição para atirar ...");
 				attackPosition = getAttackPosition();
-				out.writeObject(attackPosition); //envia posição
-				out.flush();
-				matchEnded = in.readBoolean();
-				attackRealized = in.readBoolean();
+				writeObject(attackPosition); //envia posição
+				matchEnded = (Boolean) in.readObject();
+				attackRealized = (Boolean) in.readObject();
 				if(!attackRealized) { //tiro inválido
 					String reason = (String) in.readObject();
 					System.out.println("Ataque não realizado: "+reason);
@@ -81,6 +83,13 @@ class GameClient {
 		out.close();
 	}
 	
+	/*
+	 * Escreve objeto no socket 
+	 */
+	public void writeObject(Object obj) throws IOException {
+		out.writeObject(obj);
+		out.flush();
+	}
 	
 	/*
 	 * Envia para o servidor as posições dos navios e inicia partida.
@@ -91,35 +100,36 @@ class GameClient {
 		ArrayList<Position> finalPositions =  new ArrayList<Position>();
 		Position initialP = null, finalP = null;
 		int done = 0;
+		boolean placedInServer = false;
 		
-		System.out.println("Recebendo navios");
-		while(done <5) { //Coleta os 5 navios e suas posições
-			board.printBoard();
-		
-			Ship ship = getShip(ships);
-			Position[] positions = getPositions(ship);
-			initialP = positions[0];
-			finalP = positions[1];
+		while(!placedInServer) {
+			System.out.println("Recebendo navios");
+			while(done <5) { //Coleta os 5 navios e suas posições
+				board.printBoard();
 			
-			boolean placed = board.placeShip(ship, initialP, finalP);
-			if(placed) {
-				ships.add(ship);
-				initialPositions.add(initialP);
-				finalPositions.add(finalP);
-				done ++;
-			}
-		}
+				Ship ship = getShip(ships);
+				Position[] positions = getPositions(ship);
+				initialP = positions[0];
+				finalP = positions[1];
 				
-		boolean placedInServer = false; //resposta do servidor se foi possível posicionar
+				boolean placed = board.placeShip(ship, initialP, finalP);
+				if(placed) {
+					ships.add(ship);
+					initialPositions.add(initialP);
+					finalPositions.add(finalP);
+					done ++;
+				}
+			}
+			//Envia para o servidor
+			writeObject(ships);
+			writeObject(initialPositions);
+			writeObject(finalPositions);
+			
+			while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
+			in = new ObjectInputStream(clientSocket.getInputStream());
+			placedInServer = (Boolean) in.readObject(); //resposta do servidor se foi possível posicionar
+			if(!placedInServer) System.out.println("Não foi posível inserir os navios nestas posições. Por favor, tente outras novamente.");
 		
-		while(!placedInServer) { //Envia os dados para o servidor
-			out.writeObject(ships);
-			out.flush();
-			out.writeObject(initialPositions);
-			out.flush();
-			out.writeObject(finalPositions);
-			out.flush();
-			placedInServer = in.readBoolean(); 
 		}
 		
 		System.out.println("Cliente --> Enviado dados. Servidor Posicionou navios.");
