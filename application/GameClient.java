@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import game.Board;
@@ -37,7 +37,7 @@ class GameClient {
 	 * Executa a partida até o final
 	 */
 	public void startMatch() throws IOException, ClassNotFoundException {
-		System.out.println("Iniciando partida.");
+		System.console().writer().println("Iniciando partida.");
 		
 		while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
 		boolean myTurn = (Boolean) in.readObject(); //recebe se é o primeiro a jogar
@@ -47,13 +47,13 @@ class GameClient {
 		
 		while(!matchEnded) {
 			if(!myTurn) { // aguarda jogada do adversário
-				System.out.println("Aguardando jogada do adversário ...");
+				System.console().writer().println("Aguardando jogada do adversário ...");
 				matchEnded = (Boolean) in.readObject();
 				board = (Board) in.readObject();
 				myTurn = true;
 				printBoards();
 			}else { //realiza ataque
-				System.out.println("Seu turno. Escolha uma posição para atirar ...");
+				System.console().writer().println("Seu turno. Escolha uma posição para atirar ...");
 				attackPosition = getAttackPosition();
 				writeObject(attackPosition); //envia posição
 				
@@ -66,17 +66,18 @@ class GameClient {
 					printBoards();
 				}else {//falha ao realizar ataque
 					msg = (String) in.readObject();
-					System.out.println("Ataque não realizado: "+msg);
+					System.console().writer().println("Ataque não realizado: "+msg);
 				}
 			}
 		}
 		
 		//Fim de partida
 		msg = (String) in.readObject();
-		System.out.println(msg);
+		System.console().writer().println(msg);
 		
 		in.close();
 		out.close();
+		scan.close();
 	}
 	
 	/*
@@ -101,35 +102,35 @@ class GameClient {
 		while(!placedInServer) {
 			done = 0;
 			board = new Board();
-			System.out.println("Recebendo navios");
-//			while(done <5) { //Coleta os 5 navios e suas posições
-//				board.printBoard();
-//			
-//				Ship ship = getShip(ships);
-//				Position[] positions = getPositions(ship);
-//				initialP = positions[0];
-//				finalP = positions[1];
-//				
-//				boolean placed = board.placeShip(ship, initialP, finalP);
-//				if(placed) {
-//					ships.add(ship);
-//					initialPositions.add(initialP);
-//					finalPositions.add(finalP);
-//					done ++;
-//				}
-//			}
+			System.console().writer().println("Recebendo navios");
+			while(done <5) { //Coleta os 5 navios e suas posições
+				board.printBoard();
 			
-//			/*
-//			 * Debug
-//			 */
-			ships = new ArrayList<Ship>(
-					Arrays.asList(Ship.CARRIER,Ship.BATTLESHIP,Ship.CRUISER,Ship.SUBMARINE,Ship.DESTROYER));
-			initialPositions = new ArrayList<Position>(
-					Arrays.asList(new Position(0,0),new Position(1,0),new Position(2,0),new Position(3,0),new Position(4,0)));
-			finalPositions = new ArrayList<Position>(
-					Arrays.asList(new Position(0,4),new Position(1,3),new Position(2,2),new Position(3,2),new Position(4,1)));
-			for(int x = 0; x<5;x++) 
-				board.placeShip(ships.get(x), initialPositions.get(x), finalPositions.get(x));
+				Ship ship = getShip(ships);
+				Position[] positions = getPositions(ship);
+				initialP = positions[0];
+				finalP = positions[1];
+				
+				boolean placed = board.placeShip(ship, initialP, finalP);
+				if(placed) {
+					ships.add(ship);
+					initialPositions.add(initialP);
+					finalPositions.add(finalP);
+					done ++;
+				}
+			}
+			
+			/*
+			 * Debug
+			 */
+//			ships = new ArrayList<Ship>(
+//					Arrays.asList(Ship.CARRIER,Ship.BATTLESHIP,Ship.CRUISER,Ship.SUBMARINE,Ship.DESTROYER));
+//			initialPositions = new ArrayList<Position>(
+//					Arrays.asList(new Position(0,0),new Position(1,0),new Position(2,0),new Position(3,0),new Position(4,0)));
+//			finalPositions = new ArrayList<Position>(
+//					Arrays.asList(new Position(0,4),new Position(1,3),new Position(2,2),new Position(3,2),new Position(4,1)));
+//			for(int x = 0; x<5;x++) 
+//				board.placeShip(ships.get(x), initialPositions.get(x), finalPositions.get(x));
 			//------------------------
 			
 			//Envia para o servidor
@@ -140,11 +141,11 @@ class GameClient {
 			while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
 			in = new ObjectInputStream(clientSocket.getInputStream());
 			placedInServer = (Boolean) in.readObject(); //resposta do servidor se foi possível posicionar
-			if(!placedInServer) System.out.println("Não foi posível inserir os navios nestas posições. Por favor, tente outras novamente.");
+			if(!placedInServer) System.console().writer().println("Não foi posível inserir os navios nestas posições. Por favor, tente outras novamente.");
 		
 		}
 		
-		System.out.println("Cliente --> Enviado dados. Servidor Posicionou navios.");
+		System.console().writer().println("Enviado dados. Servidor Posicionou navios.");
 		startMatch();
 	}
 	
@@ -154,19 +155,19 @@ class GameClient {
 	 */
 	private Ship getShip(ArrayList<Ship> alreadyPlaced) {
 		int s =-1, selected = -1;
-		System.out.println("Qual navio deseja posicionar?");
+		System.console().writer().println("Qual navio deseja posicionar?");
 		for(Ship ship : Ship.values()) {
 			if(!alreadyPlaced.contains(ship)) { //Mostrar apenas ainda não colocado
 				if(ship == Ship.CARRIER)
-					System.out.print("(1)Porta-avião | ");
+					System.console().writer().print("(1)Porta-avião | ");
 				else if(ship == Ship.BATTLESHIP)
-					System.out.print("(2)Navio-tanque | ");
+					System.console().writer().print("(2)Navio-tanque | ");
 				else if(ship == Ship.CRUISER)
-					System.out.print("(3)Crusador | ");
+					System.console().writer().print("(3)Crusador | ");
 				else if(ship == Ship.SUBMARINE)
-					System.out.print("(4)Submarino | ");
+					System.console().writer().print("(4)Submarino | ");
 				else if(ship == Ship.DESTROYER)
-					System.out.print("(5)Destroyer | ");
+					System.console().writer().print("(5)Destroyer | ");
 			}
 		}
 		while(s<1 || s>5) {
@@ -186,18 +187,21 @@ class GameClient {
 		char y = 'Z';
 		Position attackPosition = null;
 		while(true) {
-			System.out.print("Qual a linha da posição a atacar? ");
+			System.console().writer().print("Qual a linha da posição a atacar? ");
 			while(x<0 || x>9) {
 				try {
 					x = scan.nextInt() -1;
-				}catch(Exception e){System.out.println("Valor de linha inválido.");};
+				}catch(InputMismatchException e){
+					System.console().writer().println("Valor de linha inválido."); 
+					scan.next();
+				}
 			}
-			System.out.print("Qual a coluna da posição a atacar? ");
+			System.console().writer().print("Qual a coluna da posição a atacar? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));
 			attackPosition = new Position(x,y);
 			if(!attackPosition.isValid()) {
-				System.out.println("Posição "+attackPosition+" inválida...");
+				System.console().writer().println("Posição "+attackPosition+" inválida...");
 				x = -1; y = 'Z';
 			}else return attackPosition;
 		}
@@ -215,13 +219,16 @@ class GameClient {
 		
 		while(!validPosition1) {
 			validPosition2 = false;
-			System.out.print("Qual a linha da posição inicial? ");
+			System.console().writer().print("Qual a linha da posição inicial? ");
 			while(x<0 || x>9) {
 				try {
 					x = scan.nextInt() -1;					
-				}catch(Exception e){System.out.println("Valor de linha inválido.");};
+				}catch(InputMismatchException e){
+					System.console().writer().println("Valor de linha inválido."); 
+					scan.next();
+				}
 			}
-			System.out.print("Qual a coluna da posição inicial? ");
+			System.console().writer().print("Qual a coluna da posição inicial? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));
 			
@@ -232,11 +239,11 @@ class GameClient {
 				int i;
 				while(!validPosition2) {
 					x = -1;
-					System.out.println("Qual a posição final? ");
+					System.console().writer().println("Qual a posição final? ");
 
 					for(i = 0; i< posibles.size(); i++) 
-						System.out.print("("+(i+1)+"): "+posibles.get(i)+" |");						
-					System.out.println("("+(i+1)+"): Mudar posição inicial");
+						System.console().writer().print("("+(i+1)+"): "+posibles.get(i)+" |");						
+					System.console().writer().println("("+(i+1)+"): Mudar posição inicial");
 
 					while(x<0 || x>posibles.size()+1)
 						x = scan.nextInt() -1;
@@ -252,7 +259,7 @@ class GameClient {
 					}
 				}
 			} else{
-				System.out.println("Posição inválida");
+				System.console().writer().println("Posição inválida");
 				x = -1; y = 'Z';
 			}
 		}
@@ -266,15 +273,15 @@ class GameClient {
 		String line;
 		for(int i = -1;i<10;i++) {
 			if(i == -1) {
-				System.out.println("========================    ||    ========================");
-				System.out.println("_______Meus navios______    ||    ______Campo inimigo_____");
-				System.out.println("========================    ||    ========================");
+				System.console().writer().println("========================    ||    ========================");
+				System.console().writer().println("_______Meus navios______    ||    ______Campo inimigo_____");
+				System.console().writer().println("========================    ||    ========================");
 			}
 			line = board.getStringBoardLine(i);
-			System.out.print(line);
-			System.out.print("    ||    ");
+			System.console().writer().print(line);
+			System.console().writer().print("    ||    ");
 			line = attackBoard.getStringBoardLine(i);
-			System.out.println(line);
+			System.console().writer().println(line);
 		}
 	}
 	
@@ -284,11 +291,11 @@ class GameClient {
 			client = new GameClient(args[0],Integer.parseInt(args[1]));
 		else
 			client = new GameClient(defaultServerIP,defaultServerPort);
-		System.out.println("Cliente --> Conectado ao servidor");
+		System.console().writer().println("Cliente --> Conectado ao servidor");
 		
 		client.initialize();
 		
-		System.out.println("Cliente --> Desligando ....");
+		System.console().writer().println("Cliente --> Desligando ....");
 		client.clientSocket.close();
 	}
 }

@@ -148,7 +148,7 @@ public class Board implements Serializable{
 	}
 	
 	/*
-	 * Imprime uma linha do tabuleiro
+	 * Retorna uma linha do tabuleiro
 	 */
 	public String getStringBoardLine(int i) {
 		if(i<-1 || i > 9) 
