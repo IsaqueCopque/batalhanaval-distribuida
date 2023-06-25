@@ -37,7 +37,7 @@ class GameClient {
 	 * Executa a partida até o final
 	 */
 	public void startMatch() throws IOException, ClassNotFoundException {
-		System.out.println("Cliente --> Iniciando partida.");
+		System.out.println("Iniciando partida.");
 		
 		while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
 		boolean myTurn = (Boolean) in.readObject(); //recebe se é o primeiro a jogar
@@ -49,7 +49,6 @@ class GameClient {
 			if(!myTurn) { // aguarda jogada do adversário
 				System.out.println("Aguardando jogada do adversário ...");
 				matchEnded = (Boolean) in.readObject();
-				System.out.println("RECEBEU QUE a jogada ainda não acabou");
 				board = (Board) in.readObject();
 				myTurn = true;
 				printBoards();
@@ -129,7 +128,9 @@ class GameClient {
 					Arrays.asList(new Position(0,0),new Position(1,0),new Position(2,0),new Position(3,0),new Position(4,0)));
 			finalPositions = new ArrayList<Position>(
 					Arrays.asList(new Position(0,4),new Position(1,3),new Position(2,2),new Position(3,2),new Position(4,1)));
-//			//------------------------
+			for(int x = 0; x<5;x++) 
+				board.placeShip(ships.get(x), initialPositions.get(x), finalPositions.get(x));
+			//------------------------
 			
 			//Envia para o servidor
 			writeObject(ships);
@@ -186,8 +187,11 @@ class GameClient {
 		Position attackPosition = null;
 		while(true) {
 			System.out.print("Qual a linha da posição a atacar? ");
-			while(x<0 || x>9)
-				x = scan.nextInt() -1;
+			while(x<0 || x>9) {
+				try {
+					x = scan.nextInt() -1;
+				}catch(Exception e){System.out.println("Valor de linha inválido.");};
+			}
 			System.out.print("Qual a coluna da posição a atacar? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));
@@ -212,8 +216,11 @@ class GameClient {
 		while(!validPosition1) {
 			validPosition2 = false;
 			System.out.print("Qual a linha da posição inicial? ");
-			while(x<0 || x>9)
-				x = scan.nextInt() -1;
+			while(x<0 || x>9) {
+				try {
+					x = scan.nextInt() -1;					
+				}catch(Exception e){System.out.println("Valor de linha inválido.");};
+			}
 			System.out.print("Qual a coluna da posição inicial? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));

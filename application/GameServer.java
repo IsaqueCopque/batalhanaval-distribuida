@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import game.Board;
 import game.Match;
 import game.Position;
 import game.enums.Ship;
@@ -107,6 +108,7 @@ class GameServer {
 	private void startMatch() throws ClassNotFoundException, IOException {
 		boolean matchEnded = false;
 		Position attackPosition;
+		Board board = null;
 		
 		//Informa para o player 1 que ele é o primeiro a jogar e para o 2 aguardar
 		writeObject(Boolean.TRUE,true);
@@ -119,10 +121,12 @@ class GameServer {
 					matchEnded = match.shoot(attackPosition); //Realiza tiro
 					writeObject(Boolean.valueOf(matchEnded),true); //Informa se partida chegou ao fim
 					writeObject(Boolean.TRUE,true); //informa que o ataque foi realizado com sucesso
-					writeObject(match.getAttackBoard1(),true); //retorna tabuleiro de ataque com resultado
+					board = new Board(match.getAttackBoard1());
+					writeObject(board,true); //retorna tabuleiro de ataque com resultado
 					//Retorna para player2
 					writeObject(Boolean.valueOf(matchEnded),false);
-					writeObject(match.getBoard2(),false);
+					board = new Board(match.getBoard2());
+					writeObject(board,false);
 				}catch(GameException e) {// Se atirou em posição inválida
 					writeObject(Boolean.FALSE,true); //Informa que partida não chegou ao fim
 					writeObject(Boolean.FALSE,true); //Informa que o ataque não foi realizado
@@ -135,10 +139,12 @@ class GameServer {
 					matchEnded = match.shoot(attackPosition); //Realiza tiro
 					writeObject(Boolean.valueOf(matchEnded),false); //Informa se partida chegou ao fim
 					writeObject(Boolean.TRUE,false);//Informa que o ataque foi realizado com sucesso
-					writeObject(match.getAttackBoard2(),false); //retorna tabuleiro de ataque com resultado
+					board = new Board(match.getAttackBoard2());
+					writeObject(board,false); //retorna tabuleiro de ataque com resultado
 					//Retorna para player1
 					writeObject(Boolean.valueOf(matchEnded),true);
-					writeObject(match.getBoard1(),true);
+					board = new Board(match.getBoard1());
+					writeObject(board,true);
 				}catch(GameException e) {// Se atirou em posição inválida
 					writeObject(Boolean.FALSE,false); //Informa que partida não chegou ao fim
 					writeObject(Boolean.FALSE,false); //Informa que o ataque não foi realizado

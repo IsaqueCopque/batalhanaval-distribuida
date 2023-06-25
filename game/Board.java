@@ -14,6 +14,13 @@ public class Board implements Serializable{
 		board = new int[10][10];
 	}
 	
+	public Board(Board other) {
+		board = new int[10][10];
+		for(int i =0; i<10;i++) 
+			for(int j=0;j<10;j++)
+				board[i][j] = other.board[i][j];
+	}
+	
 	//Construtor para tabuleiro do jogador, sem fog apenas água se true
 	public Board(boolean water) {
 		board = new int [10] [10];
