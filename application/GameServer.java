@@ -99,7 +99,7 @@ class GameServer {
 		}
 		
 		System.out.println("Recebido navios de ambos jogadores");
-		match.printBoards();
+		match.debugBoards();
 	}
 	
 	/*

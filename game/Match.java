@@ -118,7 +118,7 @@ public class Match {
 	/*
 	 * Printa tabuleiros para debug
 	 */
-	public void printBoards() {
+	public void debugBoards() {
 		System.out.println("Board Player 1");
 		board1.printBoard();
 		System.out.println("Attack Board Player 1");

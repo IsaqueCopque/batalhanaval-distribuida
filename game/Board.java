@@ -161,7 +161,7 @@ public class Board implements Serializable{
 		if(i != 9) line = line.concat("  |");
 		else line = line.concat(" |");
 		for(j = 0; j<10; j++) {
-			line = line.concat(board[i][j] + "|");
+			line = line.concat(PrintUtils.positionColored(board[i][j])+ "|");
 		}
 		return line;
 	}
@@ -176,7 +176,7 @@ public class Board implements Serializable{
 			System.out.print((i+1)+ " ");
 			if(i != 9)System.out.print(" ");
 			for(int j =0;j<10;j++) {
-				System.out.print("|"+board[i][j]);	
+				System.out.print("|"+PrintUtils.positionColored(board[i][j]));	
 			}
 			System.out.println("|");
 		}
