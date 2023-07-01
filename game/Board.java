@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import game.enums.PositionStatus;
 import game.enums.Ship;
 
+/*
+ * Classe que implementa o tabuleiro do jogo
+ */
 public class Board implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private int[][] board;

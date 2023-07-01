@@ -13,6 +13,9 @@ import game.Position;
 import game.enums.Ship;
 import game.exceptions.GameException;
 
+/* 
+ * Classe que implementa o processo servidor
+ */
 class GameServer {
 	
 	private ServerSocket server;

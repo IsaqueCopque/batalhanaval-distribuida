@@ -1,5 +1,8 @@
 package game.enums;
 
+/*
+ * Tipos de navios 
+ */
 public enum Ship {
 	CARRIER(5),//Porta-avião 5
 	BATTLESHIP(4), //Navio-tanque 4

@@ -2,6 +2,9 @@ package game;
 
 import game.enums.PositionStatus;
 
+/*
+ * Métodos auxiliares para impressão
+ */
 public abstract class PrintUtils {
 	public static final String BLUE = "\u001B[34m";
 	public static final String BLUEBG = "\u001B[44m";

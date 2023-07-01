@@ -13,7 +13,9 @@ import game.Board;
 import game.Position;
 import game.PrintUtils;
 import game.enums.Ship;
-
+/*
+ * Classe que implementa o processo cliente
+ */
 class GameClient {
 	private Socket clientSocket;	
 	private ObjectInputStream in;
@@ -46,9 +48,12 @@ class GameClient {
 		Position attackPosition = null;
 		String msg;
 		
+		if(myTurn) //imprime inicialmente o tabuleiro para primeira jogada
+			printBoards();
+		
 		while(!matchEnded) {
 			if(!myTurn) { // aguarda jogada do adversário
-				System.out.println("Aguardando jogada do advers\u00E1rio ...");
+				System.out.println("\nAguardando jogada do advers\u00E1rio ...\n");
 				matchEnded = (Boolean) in.readObject();
 				board = (Board) in.readObject();
 				myTurn = true;
@@ -141,7 +146,7 @@ class GameClient {
 			writeObject(initialPositions);
 			writeObject(finalPositions);
 			
-			System.out.println("Aguardando inicio da partida...");
+			System.out.println("Aguardando inicio da partida...\n");
 			
 			while(clientSocket.getInputStream().available() < 1) {}//espera receber resposta
 			in = new ObjectInputStream(clientSocket.getInputStream());
@@ -191,7 +196,7 @@ class GameClient {
 		char y = 'Z';
 		Position attackPosition = null;
 		while(true) {
-			System.out.print("Qual a linha da posi\u00E7\u00E3o a atacar? ");
+			System.out.print("Qual a linha da posi\u00E7\u00E3o a atacar (1-10)? ");
 			while(x<0 || x>9) {
 				try {
 					x = scan.nextInt() -1;
@@ -200,7 +205,7 @@ class GameClient {
 					scan.next();
 				}
 			}
-			System.out.print("Qual a coluna da posi\u00E7\u00E3o a atacar? ");
+			System.out.print("Qual a coluna da posi\u00E7\u00E3o a atacar (A-J)? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));
 			attackPosition = new Position(x,y);
@@ -223,7 +228,7 @@ class GameClient {
 		
 		while(!validPosition1) {
 			validPosition2 = false;
-			System.out.print("Qual a linha da posi\u00E7\u00E3o inicial? ");
+			System.out.print("Qual a linha da posi\u00E7\u00E3o inicial (1-10)? ");
 			while(x<0 || x>9) {
 				try {
 					x = scan.nextInt() -1;					
@@ -232,7 +237,7 @@ class GameClient {
 					scan.next();
 				}
 			}
-			System.out.print("Qual a coluna da posi\u00E7\u00E3o inicial? ");
+			System.out.print("Qual a coluna da posi\u00E7\u00E3o inicial (A-J)? ");
 			while(((int) y)< 65 || ((int) y)>74) 
 				y =  (scan.next().toUpperCase().charAt(0));
 			
@@ -263,7 +268,7 @@ class GameClient {
 					}
 				}
 			} else{
-				System.out.println("Posição inv\u00E1lida");
+				System.out.println("Posi\00E7\00E3o inv\u00E1lida");
 				x = -1; y = 'Z';
 			}
 		}

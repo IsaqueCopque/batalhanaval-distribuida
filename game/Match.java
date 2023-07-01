@@ -6,6 +6,9 @@ import game.enums.PositionStatus;
 import game.enums.Ship;
 import game.exceptions.GameException;
 
+/*
+ * Classe que representa uma partida do jogo
+ */
 public class Match {
 
 	private Board board1;		//tabuleiro do player 1

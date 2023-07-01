@@ -1,5 +1,8 @@
 package game.enums;
 
+/*
+ * Status de uma posição 
+ */
 public enum PositionStatus {
 	FOG(0),
 	WATER(1),
